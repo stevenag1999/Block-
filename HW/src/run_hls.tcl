@@ -10,7 +10,7 @@ set_top bfp_kernel
 # ARCHIVOS FUENTE
 #   (usa tus fuentes actuales del kernel)
 #==============================================================================
-add_files bfp_kernel_opt.cpp
+add_files bfp_kernel.cpp
 add_files bfp_ops_hls.h
 add_files bfp_hls.h
 
@@ -68,3 +68,4 @@ puts "XO     : bfp_proj_opt/sol1/bfp_kernel.xo (y copia local: ./bfp_kernel.xo)"
 puts "\n"
 
 exit
+
