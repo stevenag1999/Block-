@@ -54,23 +54,28 @@ void bfp_kernel(
     unsigned int* out_sign,           // BFP sign output
     unsigned int* out_mant            // BFP mant output
 ) {
-#pragma HLS INTERFACE m_axi port=in_fp32_a offset=slave bundle=gmem0
-#pragma HLS INTERFACE m_axi port=in_exp_a offset=slave bundle=gmem1
-#pragma HLS INTERFACE m_axi port=in_sign_a offset=slave bundle=gmem1
-#pragma HLS INTERFACE m_axi port=in_mant_a offset=slave bundle=gmem1
+    // Todas las s_axilite en el MISMO bundle "control"
+    #pragma HLS INTERFACE s_axilite port=operation bundle=control
+    #pragma HLS INTERFACE s_axilite port=n_blocks  bundle=control
+    #pragma HLS INTERFACE s_axilite port=return    bundle=control
 
-#pragma HLS INTERFACE m_axi port=in_exp_b offset=slave bundle=gmem2
-#pragma HLS INTERFACE m_axi port=in_sign_b offset=slave bundle=gmem2
-#pragma HLS INTERFACE m_axi port=in_mant_b offset=slave bundle=gmem2
+    // Memorias por AXI (NO s_axilite). Bundles m_axi separados para ancho de banda.
+    // A
+    #pragma HLS INTERFACE m_axi port=in_fp32_a offset=slave bundle=gmem0
+    #pragma HLS INTERFACE m_axi port=in_exp_a  offset=slave bundle=gmem1
+    #pragma HLS INTERFACE m_axi port=in_sign_a offset=slave bundle=gmem2
+    #pragma HLS INTERFACE m_axi port=in_mant_a offset=slave bundle=gmem3
 
-#pragma HLS INTERFACE m_axi port=out_fp32 offset=slave bundle=gmem3
-#pragma HLS INTERFACE m_axi port=out_exp offset=slave bundle=gmem4
-#pragma HLS INTERFACE m_axi port=out_sign offset=slave bundle=gmem4
-#pragma HLS INTERFACE m_axi port=out_mant offset=slave bundle=gmem4
+    // B
+    #pragma HLS INTERFACE m_axi port=in_exp_b  offset=slave bundle=gmem1
+    #pragma HLS INTERFACE m_axi port=in_sign_b offset=slave bundle=gmem2
+    #pragma HLS INTERFACE m_axi port=in_mant_b offset=slave bundle=gmem3
 
-#pragma HLS INTERFACE s_axilite port=operation bundle=control
-#pragma HLS INTERFACE s_axilite port=n_blocks bundle=control
-#pragma HLS INTERFACE s_axilite port=return bundle=control
+    // Salidas
+    #pragma HLS INTERFACE m_axi port=out_fp32  offset=slave bundle=gmem0
+    #pragma HLS INTERFACE m_axi port=out_exp   offset=slave bundle=gmem1
+    #pragma HLS INTERFACE m_axi port=out_sign  offset=slave bundle=gmem2
+    #pragma HLS INTERFACE m_axi port=out_mant  offset=slave bundle=gmem3
 
     // Process each block
     for (unsigned int blk_idx = 0; blk_idx < n_blocks; blk_idx++) {
