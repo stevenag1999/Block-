@@ -79,7 +79,10 @@ See **[GUIDE.md](GUIDE.md)** for:
 
 ## License
 
-[Your license]
+Nombre del Proyecto
+Copyright (c) 2025 Steven Arias Gutierrez
+
+[Texto completo de la licencia elegida]
 
 ---
 
