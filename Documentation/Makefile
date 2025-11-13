@@ -4,7 +4,7 @@ TARGET := hw
 
 # TODO: Modify according to the Alveo card. This is shown in the
 #       Flashable partitions running on FPGA (when logging in)
-PLATFORM ?= xilinx_u55c_gen3x16_xdma_3_202210_1
+PLATFORM ?= $(ROOT_DIR)/../kv260_custom.xpfm
 
 # Setting input file
 # TODO: Modify the HLS_FILES with the CPP files you want to include
