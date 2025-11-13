@@ -1,12 +1,8 @@
-// bfp_kernel.cpp - Vitis Kernel for Alveo U55C
-// Unified BFP operations: ENCODE → OPERATIONS → DECODE
-
 #include <ap_int.h>
-#include <hls_stream.h>
 #include "bfp_hls.h"
 #include "bfp_ops_hls.h"
 
-// Configuration (matches testbench)
+// Configuration
 #define WE 5
 #define WM 7
 #define N 16
@@ -14,9 +10,7 @@
 using Cfg = BFP_bias<WE, WM>;
 using blk_t = BFP_Global<Cfg, N>;
 
-//=============================================================================
 // Operation codes
-//=============================================================================
 typedef enum : unsigned int {
     OP_ENCODE = 0,
     OP_DECODE = 1,
@@ -28,20 +22,20 @@ typedef enum : unsigned int {
 } bfp_op_t;
 
 //=============================================================================
-// MAIN KERNEL: BFP Operations
+// MAIN KERNEL - Simplified without DATAFLOW for stable synthesis
 //=============================================================================
 extern "C" {
 
 void bfp_kernel(
     // Control
-    const unsigned int operation,      // Operation selector
-    const unsigned int n_blocks,       // Number of blocks to process
+    const unsigned int operation,
+    const unsigned int n_blocks,
     
     // Input A (FP32 or BFP format)
-    const float* in_fp32_a,           // FP32 input for ENCODE
-    const unsigned int* in_exp_a,     // BFP exp input
-    const unsigned int* in_sign_a,    // BFP sign input
-    const unsigned int* in_mant_a,    // BFP mant input
+    const float* in_fp32_a,
+    const unsigned int* in_exp_a,
+    const unsigned int* in_sign_a,
+    const unsigned int* in_mant_a,
     
     // Input B (BFP format for binary ops)
     const unsigned int* in_exp_b,
@@ -49,77 +43,120 @@ void bfp_kernel(
     const unsigned int* in_mant_b,
     
     // Output (FP32 or BFP format)
-    float* out_fp32,                  // FP32 output for DECODE
-    unsigned int* out_exp,            // BFP exp output
-    unsigned int* out_sign,           // BFP sign output
-    unsigned int* out_mant            // BFP mant output
+    float* out_fp32,
+    unsigned int* out_exp,
+    unsigned int* out_sign,
+    unsigned int* out_mant
 ) {
-    // Todas las s_axilite en el MISMO bundle "control"
-    #pragma HLS INTERFACE s_axilite port=operation
-    #pragma HLS INTERFACE s_axilite port=n_blocks
-    #pragma HLS INTERFACE s_axilite port=return
+    // Interface pragmas
+    #pragma HLS INTERFACE s_axilite port=operation bundle=control
+    #pragma HLS INTERFACE s_axilite port=n_blocks bundle=control
+    #pragma HLS INTERFACE s_axilite port=return bundle=control
 
-    // Memorias por AXI (NO s_axilite). Bundles m_axi separados para ancho de banda.
-    // A
-    #pragma HLS INTERFACE m_axi port=in_fp32_a offset=slave bundle=gmem0
-    #pragma HLS INTERFACE m_axi port=in_exp_a  offset=slave bundle=gmem1
-    #pragma HLS INTERFACE m_axi port=in_sign_a offset=slave bundle=gmem2
-    #pragma HLS INTERFACE m_axi port=in_mant_a offset=slave bundle=gmem3
+    // Memory interfaces - m_axi for DDR access
+    #pragma HLS INTERFACE m_axi port=in_fp32_a offset=slave bundle=gmem0 \
+        max_read_burst_length=16 num_read_outstanding=4
+    #pragma HLS INTERFACE s_axilite port=in_fp32_a bundle=control
+    
+    #pragma HLS INTERFACE m_axi port=in_exp_a offset=slave bundle=gmem1 \
+        max_read_burst_length=16 num_read_outstanding=4
+    #pragma HLS INTERFACE s_axilite port=in_exp_a bundle=control
+    
+    #pragma HLS INTERFACE m_axi port=in_sign_a offset=slave bundle=gmem2 \
+        max_read_burst_length=16 num_read_outstanding=4
+    #pragma HLS INTERFACE s_axilite port=in_sign_a bundle=control
+    
+    #pragma HLS INTERFACE m_axi port=in_mant_a offset=slave bundle=gmem3 \
+        max_read_burst_length=16 num_read_outstanding=4
+    #pragma HLS INTERFACE s_axilite port=in_mant_a bundle=control
 
-    // B
-    #pragma HLS INTERFACE m_axi port=in_exp_b  offset=slave bundle=gmem1
-    #pragma HLS INTERFACE m_axi port=in_sign_b offset=slave bundle=gmem2
-    #pragma HLS INTERFACE m_axi port=in_mant_b offset=slave bundle=gmem3
+    #pragma HLS INTERFACE m_axi port=in_exp_b offset=slave bundle=gmem1 \
+        max_read_burst_length=16 num_read_outstanding=4
+    #pragma HLS INTERFACE s_axilite port=in_exp_b bundle=control
+    
+    #pragma HLS INTERFACE m_axi port=in_sign_b offset=slave bundle=gmem2 \
+        max_read_burst_length=16 num_read_outstanding=4
+    #pragma HLS INTERFACE s_axilite port=in_sign_b bundle=control
+    
+    #pragma HLS INTERFACE m_axi port=in_mant_b offset=slave bundle=gmem3 \
+        max_read_burst_length=16 num_read_outstanding=4
+    #pragma HLS INTERFACE s_axilite port=in_mant_b bundle=control
 
-    // Salidas
-    #pragma HLS INTERFACE m_axi port=out_fp32  offset=slave bundle=gmem0
-    #pragma HLS INTERFACE m_axi port=out_exp   offset=slave bundle=gmem1
-    #pragma HLS INTERFACE m_axi port=out_sign  offset=slave bundle=gmem2
-    #pragma HLS INTERFACE m_axi port=out_mant  offset=slave bundle=gmem3
+    #pragma HLS INTERFACE m_axi port=out_fp32 offset=slave bundle=gmem0 \
+        max_write_burst_length=16 num_write_outstanding=4
+    #pragma HLS INTERFACE s_axilite port=out_fp32 bundle=control
+    
+    #pragma HLS INTERFACE m_axi port=out_exp offset=slave bundle=gmem1 \
+        max_write_burst_length=16 num_write_outstanding=4
+    #pragma HLS INTERFACE s_axilite port=out_exp bundle=control
+    
+    #pragma HLS INTERFACE m_axi port=out_sign offset=slave bundle=gmem2 \
+        max_write_burst_length=16 num_write_outstanding=4
+    #pragma HLS INTERFACE s_axilite port=out_sign bundle=control
+    
+    #pragma HLS INTERFACE m_axi port=out_mant offset=slave bundle=gmem3 \
+        max_write_burst_length=16 num_write_outstanding=4
+    #pragma HLS INTERFACE s_axilite port=out_mant bundle=control
 
-    // Process each block
-    for (unsigned int blk_idx = 0; blk_idx < n_blocks; blk_idx++) {
+    // Main processing loop - Simplified sequential design
+    process_blocks: for (unsigned int blk_idx = 0; blk_idx < n_blocks; blk_idx++) {
+#pragma HLS LOOP_TRIPCOUNT min=1 max=128 avg=32
         
         const unsigned int offset = blk_idx * N;
-        
-        blk_t A{};
-        blk_t B{};
-        blk_t Z{};
+        blk_t A{}, B{}, Z{};
         std::array<float, N> fp_in{}, fp_out{};
         
         //=====================================================================
-        // PHASE 1: Load inputs based on operation
+        // PHASE 1: LOAD DATA
         //=====================================================================
         if (operation == OP_ENCODE) {
-            // Load FP32 input
+            // Load FP32 for encoding
+        load_fp32: 
             for (int i = 0; i < N; i++) {
 #pragma HLS PIPELINE II=1
+#pragma HLS LOOP_TRIPCOUNT min=16 max=16 avg=16
                 fp_in[i] = in_fp32_a[offset + i];
             }
-        } else {
-            // --- Carga A si NO es RCP ---
-            if (operation != OP_RCP) {
-                A.exp_shared = in_exp_a[blk_idx];
-                for (int i = 0; i < N; i++) {
-                #pragma HLS PIPELINE II=1
-                    A.sign[i] = in_sign_a[offset + i];
-                    A.mant[i] = in_mant_a[offset + i];
-                }
+            
+        } else if (operation == OP_DECODE) {
+            // Load BFP A for decoding
+            A.exp_shared = in_exp_a[blk_idx];
+        load_bfp_decode: 
+            for (int i = 0; i < N; i++) {
+#pragma HLS PIPELINE II=1
+#pragma HLS LOOP_TRIPCOUNT min=16 max=16 avg=16
+                A.sign[i] = in_sign_a[offset + i];
+                A.mant[i] = in_mant_a[offset + i];
             }
-
-            // --- Carga B si es binaria (ADD..DIV) o RCP ---
-            if ((operation >= OP_ADD && operation <= OP_DIV) || operation == OP_RCP) {
-                B.exp_shared = in_exp_b[blk_idx];
-                for (int i = 0; i < N; i++) {
-                #pragma HLS PIPELINE II=1
-                    B.sign[i] = in_sign_b[offset + i];
-                    B.mant[i] = in_mant_b[offset + i];
-                        }
-                    }
+            
+        } else if (operation == OP_RCP) {
+            // Load only B for reciprocal
+            B.exp_shared = in_exp_b[blk_idx];
+        load_bfp_rcp: 
+            for (int i = 0; i < N; i++) {
+#pragma HLS PIPELINE II=1
+#pragma HLS LOOP_TRIPCOUNT min=16 max=16 avg=16
+                B.sign[i] = in_sign_b[offset + i];
+                B.mant[i] = in_mant_b[offset + i];
+            }
+            
+        } else {
+            // Binary operations: Load both A and B
+            A.exp_shared = in_exp_a[blk_idx];
+            B.exp_shared = in_exp_b[blk_idx];
+        load_bfp_binary: 
+            for (int i = 0; i < N; i++) {
+#pragma HLS PIPELINE II=1
+#pragma HLS LOOP_TRIPCOUNT min=16 max=16 avg=16
+                A.sign[i] = in_sign_a[offset + i];
+                A.mant[i] = in_mant_a[offset + i];
+                B.sign[i] = in_sign_b[offset + i];
+                B.mant[i] = in_mant_b[offset + i];
+            }
         }
         
         //=====================================================================
-        // PHASE 2: Execute operation
+        // PHASE 2: COMPUTE
         //=====================================================================
         switch (operation) {
             case OP_ENCODE:
@@ -128,7 +165,6 @@ void bfp_kernel(
                 
             case OP_DECODE:
                 fp_out = decode_block<Cfg, N>(A);
-                Z = A; // Pass through for consistency
                 break;
                 
             case OP_ADD:
@@ -152,24 +188,29 @@ void bfp_kernel(
                 break;
                 
             default:
-                Z = A; // No-op
+                Z = A;
                 break;
         }
         
         //=====================================================================
-        // PHASE 3: Write outputs
+        // PHASE 3: STORE RESULTS
         //=====================================================================
         if (operation == OP_DECODE) {
             // Write FP32 output
+        store_fp32: 
             for (int i = 0; i < N; i++) {
 #pragma HLS PIPELINE II=1
+#pragma HLS LOOP_TRIPCOUNT min=16 max=16 avg=16
                 out_fp32[offset + i] = fp_out[i];
             }
+            
         } else {
             // Write BFP output
             out_exp[blk_idx] = Z.exp_shared;
+        store_bfp: 
             for (int i = 0; i < N; i++) {
 #pragma HLS PIPELINE II=1
+#pragma HLS LOOP_TRIPCOUNT min=16 max=16 avg=16
                 out_sign[offset + i] = Z.sign[i];
                 out_mant[offset + i] = Z.mant[i];
             }
