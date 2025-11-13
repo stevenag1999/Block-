@@ -3,7 +3,7 @@
 #==============================================================================
 # CONFIGURACION DEL PROYECTO
 #==============================================================================
-open_project -reset bfp_proj_fast
+open_project -reset bfp_proj
 set_top bfp_kernel
 
 #==============================================================================
@@ -68,4 +68,5 @@ puts "XO     : bfp_proj_opt/sol1/bfp_kernel.xo (y copia local: ./bfp_kernel.xo)"
 puts "\n"
 
 exit
+
 
