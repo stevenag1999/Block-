@@ -75,22 +75,29 @@ int main(int argc, char** argv) {
 
     std::cout << "Allocate Buffers in Global Memory" << std::endl;
     
+    // CRITICAL: group_id corresponds to memory BUNDLES (gmem0-3), not argument order
+    // Bundle mapping from kernel interface pragmas:
+    //   gmem0: in_fp32_a, out_fp32
+    //   gmem1: in_exp_a, in_exp_b, out_exp
+    //   gmem2: in_sign_a, in_sign_b, out_sign
+    //   gmem3: in_mant_a, in_mant_b, out_mant
+    
     // Input A buffers (FP32 for ENCODE, BFP format for operations)
-    auto bo_in_fp32_a = xrt::bo(device, size * sizeof(float), bfp_kernel.group_id(0));
-    auto bo_in_exp_a  = xrt::bo(device, n_blocks * sizeof(unsigned int), bfp_kernel.group_id(1));
-    auto bo_in_sign_a = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(2));
-    auto bo_in_mant_a = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(3));
+    auto bo_in_fp32_a = xrt::bo(device, size * sizeof(float), bfp_kernel.group_id(0));            // gmem0
+    auto bo_in_exp_a  = xrt::bo(device, n_blocks * sizeof(unsigned int), bfp_kernel.group_id(1)); // gmem1
+    auto bo_in_sign_a = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(2));     // gmem2
+    auto bo_in_mant_a = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(3));     // gmem3
     
-    // Input B buffers (BFP format for binary operations)
-    auto bo_in_exp_b  = xrt::bo(device, n_blocks * sizeof(unsigned int), bfp_kernel.group_id(4));
-    auto bo_in_sign_b = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(5));
-    auto bo_in_mant_b = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(6));
+    // Input B buffers (BFP format for binary operations) - SHARE bundles with A
+    auto bo_in_exp_b  = xrt::bo(device, n_blocks * sizeof(unsigned int), bfp_kernel.group_id(1)); // gmem1
+    auto bo_in_sign_b = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(2));     // gmem2
+    auto bo_in_mant_b = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(3));     // gmem3
     
-    // Output buffers (FP32 for DECODE, BFP format for other operations)
-    auto bo_out_fp32 = xrt::bo(device, size * sizeof(float), bfp_kernel.group_id(7));
-    auto bo_out_exp  = xrt::bo(device, n_blocks * sizeof(unsigned int), bfp_kernel.group_id(8));
-    auto bo_out_sign = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(9));
-    auto bo_out_mant = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(10));
+    // Output buffers (FP32 for DECODE, BFP format for other operations) - SHARE bundles with inputs
+    auto bo_out_fp32 = xrt::bo(device, size * sizeof(float), bfp_kernel.group_id(0));            // gmem0
+    auto bo_out_exp  = xrt::bo(device, n_blocks * sizeof(unsigned int), bfp_kernel.group_id(1)); // gmem1
+    auto bo_out_sign = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(2));     // gmem2
+    auto bo_out_mant = xrt::bo(device, size * sizeof(unsigned int), bfp_kernel.group_id(3));     // gmem3
 
     // Map the contents of the buffer objects into host memory
     auto bo_in_fp32_a_map = bo_in_fp32_a.map<float*>();
