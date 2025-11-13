@@ -1,91 +1,23 @@
-# SW/Makefile - Build host application for BFP kernel
+# Makefile for BFP Accelerator Host Application
+# Based on ECASLab SW Makefile structure
 
-#==============================================================================
-# CONFIGURATION
-#==============================================================================
-CXX := g++
-TARGET := bfp_host
-SRC_DIR := src
-INC_DIR := include
-BUILD_DIR := build
+# Source files and executables
+SOURCES := bfp_host.cpp
+EXECUTABLES := bfp_host
 
-SOURCES := $(SRC_DIR)/bfp_host.cpp
-EXECUTABLE := $(BUILD_DIR)/$(TARGET)
+# Compiler flags - matching ECASLab configuration
+CFLAGS := -I/opt/xilinx/xrt/include -Wall -std=c++17 -O0 -g -I.
+LDFLAGS := -L/opt/xilinx/xrt/lib -pthread -lxrt_core -lxrt_coreutil
 
-#==============================================================================
-# XRT CONFIGURATION
-#==============================================================================
-ifndef XILINX_XRT
-$(error XILINX_XRT is not set. Please source /opt/xilinx/xrt/setup.sh)
-endif
+.PHONY: all clean
 
-XRT_INCLUDE := $(XILINX_XRT)/include
-XRT_LIB := $(XILINX_XRT)/lib
+# Default target to build all executables
+all: $(EXECUTABLES)
 
-#==============================================================================
-# COMPILER FLAGS
-#==============================================================================
-CXXFLAGS := -std=c++17 \
-            -O3 \
-            -Wall \
-            -Wextra \
-            -I$(XRT_INCLUDE) \
-            -I$(INC_DIR)
+# Rule to build each executable from its corresponding source file
+$(EXECUTABLES): %: %.cpp
+	$(CXX) -o $@ $< $(CFLAGS) $(LDFLAGS)
 
-LDFLAGS := -L$(XRT_LIB) \
-           -lxrt_coreutil \
-           -lpthread \
-           -lrt \
-           -lstdc++ \
-           -Wl,-rpath,$(XRT_LIB)
-
-#==============================================================================
-# TARGETS
-#==============================================================================
-.PHONY: all clean run help
-
-all: $(EXECUTABLE)
-
-$(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
-
-$(EXECUTABLE): $(SOURCES) | $(BUILD_DIR)
-	@echo "Compiling host application..."
-	$(CXX) $(CXXFLAGS) $< -o $@ $(LDFLAGS)
-	@echo "[OK] Executable created: $@"
-
+# Clean target to remove all executables
 clean:
-	rm -rf $(BUILD_DIR)
-	@echo "[OK] Build directory cleaned"
-
-run: $(EXECUTABLE)
-	@echo "Running BFP host application..."
-	@echo "Usage: $(EXECUTABLE) <xclbin_path>"
-	@echo ""
-	@echo "Example:"
-	@echo "  $(EXECUTABLE) ../HW/build/bfp_kernel.xclbin"
-
-help:
-	@echo "Makefile for BFP Host Application"
-	@echo ""
-	@echo "Targets:"
-	@echo "  all    - Build host executable (default)"
-	@echo "  clean  - Remove build artifacts"
-	@echo "  run    - Show usage information"
-	@echo "  help   - Show this help"
-	@echo ""
-	@echo "Requirements:"
-	@echo "  - XRT must be sourced: source /opt/xilinx/xrt/setup.sh"
-	@echo "  - XCLBIN must be built: make -C ../HW"
-	@echo ""
-	@echo "Usage:"
-	@echo "  make              # Build"
-	@echo "  ./build/bfp_host ../HW/build/bfp_kernel.xclbin  # Run"
-
-info:
-	@echo "Build Configuration:"
-	@echo "  Compiler:    $(CXX)"
-	@echo "  Target:      $(TARGET)"
-	@echo "  XRT Include: $(XRT_INCLUDE)"
-	@echo "  XRT Lib:     $(XRT_LIB)"
-	@echo "  Output:      $(EXECUTABLE)"
+	$(RM) $(EXECUTABLES)
