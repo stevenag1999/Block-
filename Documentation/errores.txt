@@ -34,3 +34,10 @@ Creating Vivado project.
 [01:06:01] Run vpl: Step synth: Completed
 [01:06:01] Run vpl: Step impl: Started
 
+
+lleonvega@alveo-u55c-03:~/ecaslab/steven.arias/bfp_fpga/HW$ ls
+Makefile   bfp_kernel.cpp  bfp_proj_fast  run_hls.tcl	tcl		    v++_bfp_kernel_3663295.backup.log	 v++_kernels.log
+_x	   bfp_kernel.xo   build.hw	  src		tmp.hw		    v++_kernels.link.log		 xcd.log
+bfp_hls.h  bfp_ops_hls.h   package.hw	  tb_kernel.cc	v++_bfp_kernel.log  v++_kernels.link_3843960.backup.log
+
+
