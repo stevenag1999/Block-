@@ -1,32 +1,8 @@
-lleonvega@alveo-u55c-03:~/ecaslab/steven.arias/bfp_fpga/SW$ ./bfp_host 0 2
-BFP Accelerator Test
-Operation: ENCODE (0)
-Number of blocks: 2
-Block size (N): 16
-Open the device 0
-Load the xclbin ../HW/package.hw/kernels.xclbin
-Create kernel handle
-Prepare host data
-Allocate Buffers in Global Memory
-EXCEPTION: failed to allocate bo: Operation not permitted
-lleonvega@alveo-u55c-03:~/ecaslab/steven.arias/bfp_fpga/SW$ 
-
-
-[20:56:56] Starting logic placement..
-[20:57:27] Phase 1 Placer Initialization
-[20:57:27] Phase 1.1 Placer Initialization Netlist Sorting
-[21:02:41] Phase 1.2 IO Placement/ Clock Placement/ Build Placer Device
-[21:03:11] Phase 1.3 Build Placer Netlist Model
-[21:05:16] Phase 1.4 Constrain Clocks/Macros
-[21:05:16] Phase 2 Global Placement
-[21:05:16] Phase 2.1 Floorplanning
-[21:06:18] Phase 2.1.1 Partition Driven Placement
-[21:06:18] Phase 2.1.1.1 PBP: Partition Driven Placement
-[21:06:49] Phase 2.1.1.2 PBP: Clock Region Placement
-[21:07:52] Phase 2.1.1.3 PBP: Compute Congestion
-[21:07:52] Phase 2.1.1.4 PBP: UpdateTiming
-[21:08:23] Phase 2.1.1.5 PBP: Add part constraints
-[21:08:23] Phase 2.2 Physical Synthesis After Floorplan
-[21:08:55] Phase 2.3 Update Timing before SLR Path Opt
-[21:08:55] Phase 2.4 Post-Processing in Floorplanning
-[21:08:55] Phase 2.5 Global Place Phase1
+===>The following messages were generated while  performing high-level synthesis for kernel: bfp_kernel Log file: /pub/scratch/lleonvega/ecaslab/steven.arias/bfp_fpga/HW/tmp.hw/bfp_kernel/bfp_kernel/vitis_hls.log :
+ERROR: [v++ 214-219] Vitis kernel mode requires that all s_axilite ports must be bundled into one bundle. The following ports ('operation,n_blocks,return' and 'in_fp32,in_bfp_a,in_bfp_b,out_fp32,out_bfp', in function 'bfp_kernel') have different bundle names: 'control' and 'control_r'. Consider removing the bundle names on these ports. (/pub/scratch/lleonvega/ecaslab/steven.arias/bfp_fpga/HW/bfp_kernel.cpp:82:0)
+ERROR: [v++ 200-1715] Encountered problem during source synthesis
+ERROR: [v++ 60-300] Failed to build kernel(ip) bfp_kernel, see log for details: /pub/scratch/lleonvega/ecaslab/steven.arias/bfp_fpga/HW/tmp.hw/bfp_kernel/bfp_kernel/vitis_hls.log
+ERROR: [v++ 60-599] Kernel compilation failed to complete
+ERROR: [v++ 60-592] Failed to finish compilation
+INFO: [v++ 60-1653] Closing dispatch client.
+make: *** [Makefile:62: tmp.hw/bfp_kernel.xo] Error 1
