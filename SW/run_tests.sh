@@ -14,7 +14,8 @@ NC='\033[0m' # No Color
 
 # Configuration
 EXECUTABLE="./bfp_host"
-N_BLOCKS=2
+#N_BLOCKS=2
+N_BLOCKS=${N_BLOCKS:-6}
 
 echo "========================================"
 echo "BFP Accelerator Test Suite - ENHANCED"
