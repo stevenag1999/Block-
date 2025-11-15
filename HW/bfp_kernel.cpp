@@ -80,11 +80,6 @@ void bfp_kernel(
     unsigned int* out_bfp
 
 ) {
-    // Interface pragmas
-    #pragma HLS INTERFACE s_axilite port=operation bundle=control
-    #pragma HLS INTERFACE s_axilite port=n_blocks bundle=control
-    #pragma HLS INTERFACE s_axilite port=return bundle=control
-
     // FP32 I/O
     #pragma HLS INTERFACE m_axi port=in_fp32 offset=slave bundle=gmem0 \
         max_read_burst_length=16 num_read_outstanding=4
@@ -104,10 +99,15 @@ void bfp_kernel(
     #pragma HLS INTERFACE m_axi port=out_bfp offset=slave bundle=gmem2 \
         max_write_burst_length=64 num_write_outstanding=4
 
+    // Interface pragmas
+    #pragma HLS INTERFACE s_axilite port=operation 
+    #pragma HLS INTERFACE s_axilite port=n_blocks 
+    #pragma HLS INTERFACE s_axilite port=return
+
     // Main processing loop - Simplified sequential design
     process_blocks: for (unsigned int blk_idx = 0; blk_idx < n_blocks; blk_idx++) {
 #pragma HLS LOOP_TRIPCOUNT min=1 max=128 avg=32
-        
+       
         const unsigned int fp32_offset = blk_idx * N;
         const unsigned int bfp_offset = blk_idx * BFP_BLOCK_SIZE;
 
