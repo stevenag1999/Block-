@@ -190,6 +190,7 @@ If you are interested in collaboration or have questions, feel free to open an i
 
 ## License 
 Block Floating-Point (BFP) Unit
+
 Copyright (c) 2025 Steven Arias Gutiérrez
 
 [Insert here the full text of your chosen license, e.g., MIT, BSD-3-Clause, GPL-3.0, etc.]
