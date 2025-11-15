@@ -183,7 +183,7 @@ If you add a main PDF/markdown guide (e.g., `Documentation/BFP-Unit-Guide.pdf`),
 ## Credits
 
 - **Author:** Steven Arias Gutiérrez
-- **Institution:** Instituto Tecnológico de Costa Rica (TEC) – School of Electronic Engineering
+- **Institution:** Instituto Tecnológico de Costa Rica (TEC)
 - **Lab:** ECASLab – Efficient Computing Across the Stack
 
 If you are interested in collaboration or have questions, feel free to open an issue or a pull request in this repository.
