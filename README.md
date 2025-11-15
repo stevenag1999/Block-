@@ -178,6 +178,7 @@ Additional design documentation is stored under `Documentation/`, including:
 - **Design decisions** and HLS optimization notes
 
 If you add a main PDF/markdown guide (e.g., `Documentation/BFP-Unit-Guide.pdf`), reference it here for detailed explanations of the architecture and build flow.
+
 ---
 
 ## Credits
